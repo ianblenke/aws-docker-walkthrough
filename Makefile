@@ -17,7 +17,7 @@ events:
 watch:
 	watch --interval 10 "bash -c 'make events | head -25'"
 
-outputs:
+output:
 	@which jq || ( which brew && brew install jq || which apt-get && apt-get install jq || which yum && yum install jq || which choco && choco install jq)
 	aws cloudformation describe-stacks --stack-name $(STACK) --profile $(AWS_PROFILE) --region $(AWS_REGION) | jq -r '.Stacks[].Outputs'
 
