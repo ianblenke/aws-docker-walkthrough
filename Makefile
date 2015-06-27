@@ -5,7 +5,7 @@ AWS_REGION:=us-east-1
 AWS_PROFILE:=aws-dev
 
 all:
-	which aws || pip install awscli
+	@which aws || pip install awscli
 	aws cloudformation create-stack --stack-name $(STACK) --template-body file://`pwd`/$(TEMPLATE) --parameters file://`pwd`/$(PARAMETERS) --capabilities CAPABILITY_IAM --profile $(AWS_PROFILE) --region $(AWS_REGION)
 
 update:
@@ -16,6 +16,10 @@ events:
 
 watch:
 	watch --interval 10 "bash -c 'make events | head -25'"
+
+outputs:
+	@which jq || ( which brew && brew install jq || which apt-get && apt-get install jq || which yum && yum install jq || which choco && choco install jq)
+	aws cloudformation describe-stacks --stack-name $(STACK) --profile $(AWS_PROFILE) --region $(AWS_REGION) | jq -r '.Stacks[].Outputs'
 
 delete:
 	aws cloudformation delete-stack --stack-name $(STACK) --profile $(AWS_PROFILE) --region $(AWS_REGION)
