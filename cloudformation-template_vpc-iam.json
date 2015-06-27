@@ -1,0 +1,294 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "MyApp VPC",
+  "Parameters" : {
+    "Project" : {
+      "Description" : "Project name to tag resources with",
+      "Type" : "String",
+      "MinLength": "1",
+      "MaxLength": "16",
+      "AllowedPattern" : "[a-z]*",
+      "ConstraintDescription" : "any alphabetic string (1-16) characters in length"
+    },
+    "Environment" : {
+      "Description" : "Environment name to tag resources with",
+      "Type" : "String",
+      "AllowedValues" : [ "dev", "qa", "prod" ],
+      "ConstraintDescription" : "must be one of dev, qa, or prod"
+    },
+    "SSHFrom": {
+      "Description" : "Lockdown SSH access (default: can be accessed from anywhere)",
+      "Type" : "String",
+      "MinLength": "9",
+      "MaxLength": "18",
+      "Default" : "0.0.0.0/0",
+      "AllowedPattern" : "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+      "ConstraintDescription" : "must be a valid CIDR range of the form x.x.x.x/x."
+    },
+    "VPCNetworkCIDR" : {
+      "Description": "The CIDR block for the entire VPC network",
+      "Type": "String",
+      "AllowedPattern" : "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+      "Default": "10.114.0.0/16",
+      "ConstraintDescription" : "must be an IPv4 dotted quad plus slash plus network bit length in CIDR format"
+    },
+    "VPCSubnet0CIDR" : {
+      "Description": "The CIDR block for VPC subnet0 segment",
+      "Type": "String",
+      "AllowedPattern" : "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+      "Default": "10.114.0.0/24",
+      "ConstraintDescription" : "must be an IPv4 dotted quad plus slash plus network bit length in CIDR format"
+    },
+    "VPCSubnet1CIDR" : {
+      "Description": "The CIDR block for VPC subnet1 segment",
+      "Type": "String",
+      "AllowedPattern" : "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+      "Default": "10.114.1.0/24",
+      "ConstraintDescription" : "must be an IPv4 dotted quad plus slash plus network bit length in CIDR format"
+    },
+    "VPCSubnet2CIDR" : {
+      "Description": "The CIDR block for VPC subnet2 segment",
+      "Type": "String",
+      "AllowedPattern" : "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+      "Default": "10.114.2.0/24",
+      "ConstraintDescription" : "must be an IPv4 dotted quad plus slash plus network bit length in CIDR format"
+    }
+  },
+  "Resources" : {
+    "VPC" : {
+      "Type" : "AWS::EC2::VPC",
+      "Properties" : {
+        "EnableDnsSupport" : "true",
+        "EnableDnsHostnames" : "true",
+        "CidrBlock" : { "Ref": "VPCNetworkCIDR" },
+        "Tags" : [
+          { "Key" : "Name", "Value" : { "Fn::Join": [ "-", [ "vpc", { "Ref": "Project" }, { "Ref" : "Environment" } ] ] } },
+          { "Key" : "Project", "Value" : { "Ref": "Project" } },
+          { "Key" : "Environment", "Value" : { "Ref": "Environment" } }
+        ]
+      }
+    },
+    "VPCSubnet0" : {
+      "Type" : "AWS::EC2::Subnet",
+      "Properties" : {
+        "VpcId" : { "Ref" : "VPC" },
+        "AvailabilityZone": { "Fn::Select" : [ 0, { "Fn::GetAZs" : "" } ] },
+        "CidrBlock" : { "Ref": "VPCSubnet0CIDR" },
+        "Tags" : [
+          { "Key" : "Name", "Value" : { "Fn::Join": [ "-", [ "subnet", { "Ref": "Project" }, { "Ref": "Environment" } ] ] } },
+          { "Key" : "AZ", "Value" : { "Fn::Select" : [ 0, { "Fn::GetAZs" : "" } ] } },
+          { "Key" : "Project", "Value" : { "Ref": "Project" } },
+          { "Key" : "Environment", "Value" : { "Ref": "Environment" } }
+        ]
+      }
+    },
+    "VPCSubnet1" : {
+      "Type" : "AWS::EC2::Subnet",
+      "Properties" : {
+        "VpcId" : { "Ref" : "VPC" },
+        "AvailabilityZone": { "Fn::Select" : [ 1, { "Fn::GetAZs" : "" } ] },
+        "CidrBlock" : { "Ref": "VPCSubnet1CIDR" },
+        "Tags" : [
+          { "Key" : "Name", "Value" : { "Fn::Join": [ "-", [ "subnet", { "Ref": "Project" }, { "Ref": "Environment" } ] ] } },
+          { "Key" : "AZ", "Value" : { "Fn::Select" : [ 1, { "Fn::GetAZs" : "" } ] } },
+          { "Key" : "Project", "Value" : { "Ref": "Project" } },
+          { "Key" : "Environment", "Value" : { "Ref": "Environment" } }
+        ]
+      }
+    },
+    "VPCSubnet2" : {
+      "Type" : "AWS::EC2::Subnet",
+      "Properties" : {
+        "VpcId" : { "Ref" : "VPC" },
+        "AvailabilityZone": { "Fn::Select" : [ 2, { "Fn::GetAZs" : "" } ] },
+        "CidrBlock" : { "Ref": "VPCSubnet2CIDR" },
+        "Tags" : [
+          { "Key" : "Name", "Value" : { "Fn::Join": [ "-", [ "subnet", { "Ref": "Project" }, { "Ref": "Environment" } ] ] } },
+          { "Key" : "AZ", "Value" : { "Fn::Select" : [ 2, { "Fn::GetAZs" : "" } ] } },
+          { "Key" : "Project", "Value" : { "Ref": "Project" } },
+          { "Key" : "Environment", "Value" : { "Ref": "Environment" } }
+        ]
+      }
+    },
+    "InternetGateway" : {
+      "Type" : "AWS::EC2::InternetGateway",
+      "Properties" : {
+        "Tags" : [
+          { "Key" : "Name", "Value" : { "Fn::Join": [ "-", [ "igw", { "Ref": "Project" }, { "Ref": "Environment" } ] ] } },
+          { "Key" : "Project", "Value" : { "Ref": "Project" } },
+          { "Key" : "Environment", "Value" : { "Ref": "Environment" } }
+        ]
+      }
+    },
+    "GatewayToInternet" : {
+       "Type" : "AWS::EC2::VPCGatewayAttachment",
+       "Properties" : {
+         "VpcId" : { "Ref" : "VPC" },
+         "InternetGatewayId" : { "Ref" : "InternetGateway" }
+       }
+    },
+    "PublicRouteTable" : {
+      "Type" : "AWS::EC2::RouteTable",
+      "DependsOn" : "GatewayToInternet",
+      "Properties" : {
+        "VpcId" : { "Ref" : "VPC" },
+        "Tags" : [
+          { "Key" : "Name", "Value" : { "Fn::Join": [ "-", [ "route", { "Ref": "Project" }, { "Ref" : "Environment" } ] ] } },
+          { "Key" : "Project", "Value" : { "Ref": "Project" } },
+          { "Key" : "Environment", "Value" : { "Ref": "Environment" } }
+        ]
+      }
+    },
+    "PublicRoute" : {
+      "Type" : "AWS::EC2::Route",
+      "DependsOn" : "GatewayToInternet",
+      "Properties" : {
+        "RouteTableId" : { "Ref" : "PublicRouteTable" },
+        "DestinationCidrBlock" : "0.0.0.0/0",
+        "GatewayId" : { "Ref" : "InternetGateway" }
+      }
+    },
+    "VPCSubnet0RouteTableAssociation" : {
+      "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties" : {
+        "SubnetId" : { "Ref" : "VPCSubnet0" },
+        "RouteTableId" : { "Ref" : "PublicRouteTable" }
+      }
+    },
+    "VPCSubnet1RouteTableAssociation" : {
+      "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties" : {
+        "SubnetId" : { "Ref" : "VPCSubnet1" },
+        "RouteTableId" : { "Ref" : "PublicRouteTable" }
+      }
+    },
+    "VPCSubnet2RouteTableAssociation" : {
+      "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties" : {
+        "SubnetId" : { "Ref" : "VPCSubnet2" },
+        "RouteTableId" : { "Ref" : "PublicRouteTable" }
+      }
+    },
+    "InstanceRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [ "ec2.amazonaws.com" ]
+              },
+              "Action": [ "sts:AssumeRole" ]
+            }
+          ]
+        },
+        "Path": "/",
+        "Policies": [
+          {
+            "PolicyName": "ApplicationPolicy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "elasticbeanstalk:*",
+                    "elastiCache:*",
+                    "ec2:*",
+                    "elasticloadbalancing:*",
+                    "autoscaling:*",
+                    "cloudwatch:*",
+                    "dynamodb:*",
+                    "s3:*",
+                    "sns:*",
+                    "sqs:*",
+                    "cloudformation:*",
+                    "rds:*",
+                    "iam:AddRoleToInstanceProfile",
+                    "iam:CreateInstanceProfile",
+                    "iam:CreateRole",
+                    "iam:PassRole",
+                    "iam:ListInstanceProfiles"
+                  ],
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "InstanceProfile": {
+       "Type": "AWS::IAM::InstanceProfile",
+       "Properties": {
+          "Path": "/",
+          "Roles": [ { "Ref": "InstanceRole" } ]
+       }
+    },
+    "VPCSecurityGroup" : {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "GroupDescription" : { "Fn::Join": [ "", [ "VPC Security Group for ", { "Fn::Join": [ "-", [ { "Ref": "Project" }, { "Ref": "Environment" } ] ] } ] ] },
+        "SecurityGroupIngress" : [
+          {"IpProtocol": "tcp", "FromPort" : "22",  "ToPort" : "22",  "CidrIp" : { "Ref" : "SSHFrom" }},
+          {"IpProtocol": "tcp", "FromPort": "80", "ToPort": "80", "CidrIp": "0.0.0.0/0" },
+          {"IpProtocol": "tcp", "FromPort": "443", "ToPort": "443", "CidrIp": "0.0.0.0/0" }
+        ],
+        "VpcId" : { "Ref" : "VPC" },
+        "Tags" : [
+          { "Key" : "Name", "Value" : { "Fn::Join": [ "-", [ "sg", { "Ref": "Project" }, { "Ref" : "Environment" } ] ] } },
+          { "Key" : "Project", "Value" : { "Ref": "Project" } },
+          { "Key" : "Environment", "Value" : { "Ref": "Environment" } }
+        ]
+      }
+    },
+    "VPCSGIngress": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "GroupId": { "Ref" : "VPCSecurityGroup" },
+        "IpProtocol": "-1",
+        "FromPort": "0",
+        "ToPort": "65535",
+        "SourceSecurityGroupId": { "Ref": "VPCSecurityGroup" }
+      }
+    }
+  },
+  "Outputs" : {
+    "VpcId" : {
+      "Description" : "VPC Id",
+      "Value" :  { "Ref" : "VPC" }
+    },
+    "VPCDefaultNetworkAcl" : {
+      "Description" : "VPC",
+      "Value" :  { "Fn::GetAtt" : ["VPC", "DefaultNetworkAcl"] }
+    },
+    "VPCDefaultSecurityGroup" : {
+      "Description" : "VPC Default Security Group that we blissfully ignore thanks to self-referencing bugs",
+      "Value" :  { "Fn::GetAtt" : ["VPC", "DefaultSecurityGroup"] }
+    },
+    "VPCSecurityGroup" : {
+      "Description" : "VPC Security Group created by this stack",
+      "Value" :  { "Ref": "VPCSecurityGroup" }
+    },
+    "VPCSubnet0": {
+      "Description": "The subnet id for VPCSubnet0",
+      "Value": {
+        "Ref": "VPCSubnet0"
+      }
+    },
+    "VPCSubnet1": {
+      "Description": "The subnet id for VPCSubnet1",
+      "Value": {
+        "Ref": "VPCSubnet1"
+      }
+    },
+    "VPCSubnet2": {
+      "Description": "The subnet id for VPCSubnet2",
+      "Value": {
+        "Ref": "VPCSubnet2"
+      }
+    }
+  }
+}

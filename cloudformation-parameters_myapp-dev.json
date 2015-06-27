@@ -1,0 +1,8 @@
+[
+  { "ParameterKey": "Project", "ParameterValue": "myapp" },
+  { "ParameterKey": "Environment", "ParameterValue": "dev" },
+  { "ParameterKey": "VPCNetworkCIDR", "ParameterValue": "10.0.0.0/16" },
+  { "ParameterKey": "VPCSubnet0CIDR", "ParameterValue": "10.0.0.0/24" },
+  { "ParameterKey": "VPCSubnet1CIDR", "ParameterValue": "10.0.1.0/24" },
+  { "ParameterKey": "VPCSubnet2CIDR", "ParameterValue": "10.0.2.0/24" }
+]
