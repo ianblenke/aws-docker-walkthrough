@@ -289,6 +289,12 @@
       "Value": {
         "Ref": "VPCSubnet2"
       }
+    },
+    "InstanceProfile": {
+      "Description": "The IAM instance profile for EC2 instances",
+      "Value": {
+        "Ref": "InstanceProfile"
+      }
     }
   }
 }
