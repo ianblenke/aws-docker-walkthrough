@@ -1,4 +1,7 @@
-STACK:=myapp-dev
+PROJECT:=myapp
+ENVIRONMENT:=dev
+STACK:=$(PROJECT)-$(ENVIRONMENT)
+DESCRIPTION:=My Application
 TEMPLATE:=cloudformation-template_vpc-iam.json
 PARAMETERS:=cloudformation-parameters_myapp-dev.json
 AWS_REGION:=us-east-1
@@ -23,4 +26,16 @@ output:
 
 delete:
 	aws cloudformation delete-stack --stack-name $(STACK) --profile $(AWS_PROFILE) --region $(AWS_REGION)
+
+
+application:
+	aws elasticbeanstalk create-application \
+	  --profile aws-dev \
+	  --region us-east-1 \
+	  --application-name $(PROJECT) \
+	  --description "$(DESCRIPTION)"
+
+~/.ssh/$(STACK):
+	ssh-keygen -t rsa -b 2048 -f ~/.ssh/$(STACK) -P ''
+	aws ec2 import-key-pair --key-name $(STACK) --public-key-material "$$(cat ~/.ssh/$(STACK).pub)"
 
